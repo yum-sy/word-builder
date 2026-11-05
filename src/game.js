@@ -1,14 +1,14 @@
-import {thoughtLayout} from './scene-layout.js?v=e56825d642498db6';
-import {protectGameInput} from './input-guard.js?v=e56825d642498db6';
-import {isInstalled,installApp} from './install.js?v=e56825d642498db6';
-import {collisionFrame,TUTORIAL_END} from './story.js?v=e56825d642498db6';
-import {bossIntro,bossReaction} from './boss.js?v=e56825d642498db6';
-import {actionFrame,encounterVariant,ACTION_DURATION,WAIT_X} from './encounters.js?v=e56825d642498db6';
-import {settleAction,nextRoom,validSave,stageProgress} from './progress.js?v=e56825d642498db6';
-import {WORDS,ROOMS,ZONES,TUTORIAL,LETTER_SOUNDS} from './content.js?v=e56825d642498db6';
-import {emptyLearning,chooseReview,levelFor,recordResult,recordSupport,downgrade,candidates,sharedPool} from './learning.js?v=e56825d642498db6';
-import {Sound} from './audio.js?v=e56825d642498db6';
-import * as art from './art.js?v=e56825d642498db6';
+import {thoughtLayout} from './scene-layout.js?v=da860f5ec528b24c';
+import {protectGameInput} from './input-guard.js?v=da860f5ec528b24c';
+import {isInstalled,installApp} from './install.js?v=da860f5ec528b24c';
+import {collisionFrame,TUTORIAL_END} from './story.js?v=da860f5ec528b24c';
+import {bossIntro,bossReaction} from './boss.js?v=da860f5ec528b24c';
+import {actionFrame,encounterVariant,ACTION_DURATION,WAIT_X} from './encounters.js?v=da860f5ec528b24c';
+import {settleAction,nextRoom,validSave,stageProgress} from './progress.js?v=da860f5ec528b24c';
+import {WORDS,ROOMS,ZONES,TUTORIAL,LETTER_SOUNDS} from './content.js?v=da860f5ec528b24c';
+import {emptyLearning,chooseReview,levelFor,recordResult,recordSupport,downgrade,candidates,sharedPool} from './learning.js?v=da860f5ec528b24c';
+import {Sound} from './audio.js?v=da860f5ec528b24c';
+import * as art from './art.js?v=da860f5ec528b24c';
 const $=s=>document.querySelector(s), canvas=$('#world'),ctx=canvas.getContext('2d'),ui=$('#ui'),panel=$('#puzzle'),overlay=$('#overlay');
 const qaParams=new URLSearchParams(location.search),qaMode=['127.0.0.1','localhost'].includes(location.hostname)&&qaParams.get('qa')==='1';
 const SAVE=qaMode&&qaParams.has('room')?'word-builder-qa-v1':qaParams.get('audio')==='review'?'word-builder-audio-review-v1':qaMode?'word-builder-qa-v1':'word-builder-v1',sound=new Sound();
@@ -19,6 +19,7 @@ let phase='title',hero=280,target=280,time=0,start=0,actionStart=0,actionWord=''
 const room=()=>{const base=save.room===0?TUTORIAL:ROOMS[save.room-1];return base.kind==='room'&&save.roomWord?{...base,word:save.roomWord,words:[save.roomWord]}:base;};
 function prepareReview(){if(save.room>0&&!save.roomWord){const r=ROOMS[save.room-1];if(qaMode&&qaParams.has('room')){save.roomWord=r.word;return;}if(r.kind==='room')save.roomWord=chooseReview(r.reviewOptions,save.learning,{lastWord:save.learning.history.at(-1)?.word});persist();}}
 const word=()=>WORDS[room().words[save.bossStep]||room().word];
+const waitX=()=>room().kind==='tutorial'?720:WAIT_X;
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 function persist(){try{localStorage.setItem(SAVE,JSON.stringify(save));}catch{storageFailed=true;}}
 function shuffle(a){return a.map(value=>({value,k:Math.random()})).sort((a,b)=>a.k-b.k).map(x=>x.value);}
@@ -31,7 +32,7 @@ function hud(){
  $('#sound-button').onclick=()=>{volumeOpen=!volumeOpen;hud();};
  if(volumeOpen){ui.insertAdjacentHTML('beforeend',`<div class="volume-control"><span aria-hidden="true">${icon('sound')}</span><input id="volume" aria-label="Voice volume" type="range" min="20" max="100" step="5" value="${Math.round(sound.volume*100)}"><output id="volume-value">${Math.round(sound.volume*100)}%</output></div>`);$('#volume').oninput=e=>{sound.setVolume(e.target.value/100);$('#volume-value').value=e.target.value+'%';};}
  $('#home-button').onclick=()=>{if(locked)return;sound.stop();save.puzzle=puzzle;persist();phase='title';panel.hidden=true;overlay.hidden=true;$('#game').classList.remove('puzzle-open');drawTitle();};
- if(phase==='explore'&&!locked&&hintUntil<=time&&!save.solved&&Math.abs(hero-WAIT_X)<90){const el=document.createElement('div');el.className='interact';el.style.left=(hero/14)+'%';el.style.top='43%';el.innerHTML=button('Imagine the action','hint','round hint-button','hint-button')+button('Build the word','solve','round solve-button','solve-button');ui.append(el);$('#hint-button').onclick=()=>hint();$('#solve-button').onclick=()=>openPuzzle();}
+ if(phase==='explore'&&!locked&&hintUntil<=time&&!save.solved&&Math.abs(hero-waitX())<90){const el=document.createElement('div');el.className='interact';el.style.left=(hero/14)+'%';el.style.top='43%';el.innerHTML=button('Imagine the action','hint','round hint-button','hint-button')+button('Build the word','solve','round solve-button','solve-button');ui.append(el);$('#hint-button').onclick=()=>hint();$('#solve-button').onclick=()=>openPuzzle();}
  if(phase==='explore'&&save.solved&&!locked){ui.insertAdjacentHTML('beforeend',button('Continue','next','round next','next-button'));$('#next-button').onclick=advance;}
 }
 function drawTitle(){
@@ -52,7 +53,7 @@ function drawTitle(){
 window.addEventListener('app-install-state',()=>{if(phase==='title')drawTitle();});
 
 function parents(){overlay.hidden=false;overlay.innerHTML=`<section class="parent"><h2>For grown-ups</h2><p>Touch the path to walk. Use the thought bubble for a picture hint. Build a word, then tap Go!</p><p>Progress stays in this browser. No timers, lives, or penalties.</p><p>Whole-word voices, when enabled, are AI-generated. Only reviewed audio is played. </p><p>${storageFailed?'Storage is unavailable. Progress cannot be saved.':'Audio approval and pronunciation review are managed separately.'}</p><button id="parent-close">Close</button></section>`;$('#parent-close').onclick=()=>overlay.hidden=true;}
-async function begin(){prepareReview();try{await sound.init();}catch{overlay.hidden=false;overlay.innerHTML='<section class="parent"><p>Audio could not start. Tap Play to try again.</p><button id="retry-audio">Play</button></section>';$('#retry-audio').onclick=begin;return;}save.started=true;persist();overlay.hidden=true;if(save.completed){phase='ending';start=time;hud();return;}if(save.room===0&&!save.puzzle&&!save.solved){phase='opening';start=time;openingElapsed=0;hero=235;target=520;locked=true;hud();}else{phase='explore';hero=save.solved?1100:qaMode&&qaParams.has('room')?WAIT_X:360;target=hero;hud();if(save.actionPending){if(save.room===0)hero=target=325;phase='action';actionStart=time;actionWord=word().id;locked=true;}else if(save.solved&&room().kind==='boss'){showMap('reward');}else if(save.puzzle){puzzle=save.puzzle;openPuzzle(true);}else if(room().kind==='boss')startBossIntro();}}
+async function begin(){prepareReview();try{await sound.init();}catch{overlay.hidden=false;overlay.innerHTML='<section class="parent"><p>Audio could not start. Tap Play to try again.</p><button id="retry-audio">Play</button></section>';$('#retry-audio').onclick=begin;return;}save.started=true;persist();overlay.hidden=true;if(save.completed){phase='ending';start=time;hud();return;}if(save.room===0&&!save.puzzle&&!save.solved){phase='opening';start=time;openingElapsed=0;hero=235;target=520;locked=true;hud();}else{phase='explore';hero=save.solved?1100:qaMode&&qaParams.has('room')?waitX():360;target=hero;hud();if(save.actionPending){if(save.room===0)hero=target=325;phase='action';actionStart=time;actionWord=word().id;locked=true;}else if(save.solved&&room().kind==='boss'){showMap('reward');}else if(save.puzzle){puzzle=save.puzzle;openPuzzle(true);}else if(room().kind==='boss')startBossIntro();}}
 function newPuzzle(){const w=word();return {word:w.id,letters:w.letters.map(()=>''),level:qaMode&&qaParams.has('level')?Math.max(1,Math.min(4,Number(qaParams.get('level'))||1)):levelFor(w,save.learning,room().kind==='boss'),errors:0,consecutive:0,hint:false,confusions:[],pool:shuffle(sharedPool(w)),options:w.letters.map(l=>shuffle(candidates(l,2)))};}
 async function hint(auto=false){if(locked)return;puzzle=puzzle||newPuzzle();recordSupport(save.learning,puzzle,'picture',{automatic:auto});save.puzzle=puzzle;persist();locked=true;if(phase==='puzzle'){panel.setAttribute('aria-busy','true');panel.querySelectorAll('button').forEach(b=>b.disabled=true);}hintStarted=time;hintUntil=Infinity;hud();await sound.play(word().wordAudio);await wait(600);await sound.play(word().wordAudio);await wait(1900);await wait(Math.max(0,(4.8-(time-hintStarted))*1000));hintUntil=0;locked=false;if(phase==='puzzle'){panel.removeAttribute('aria-busy');renderPuzzle();}if(auto)openPuzzle();else hud();}
 function openPuzzle(restore=false){if(locked)return;puzzle=restore?puzzle:(puzzle||newPuzzle());if(puzzle.word!==word().id)puzzle=newPuzzle();phase='puzzle';selected=Math.max(0,puzzle.letters.findIndex(l=>!l));panel.hidden=false;$('#game').classList.add('puzzle-open');hud();renderPuzzle();save.puzzle=puzzle;persist();}
@@ -84,7 +85,7 @@ async function submit(){if(locked||puzzle.letters.some(l=>!l))return;const w=wor
  slots.forEach(s=>s.classList.remove('speaking'));await sound.play(w.wordAudio);sound.chime();
  recordResult(save.learning,w,{...puzzle,boss:room().kind==='boss'});save.solved=true;save.actionPending=true;save.puzzle=null;persist();puzzle=null;panel.hidden=true;$('#game').classList.remove('puzzle-open');phase='action';actionStart=time;actionWord=w.id;hud();
 }
-function startBossIntro(){phase='boss-intro';bossStarted=time;hero=save.bossStep>0?280:WAIT_X;target=WAIT_X;heroFace=1;locked=true;hud();}
+function startBossIntro(){phase='boss-intro';bossStarted=time;hero=save.bossStep>0?280:waitX();target=waitX();heroFace=1;locked=true;hud();}
 function completeAction(){locked=false;phase='explore';const result=settleAction(save,room());persist();
  if(result==='tutorial'||result==='reward')showMap(result);
  else if(result==='boss-next')startBossIntro();
@@ -92,17 +93,17 @@ function completeAction(){locked=false;phase='explore';const result=settleAction
 }
 function advance(){if(locked)return;sound.stop();puzzle=null;phase=nextRoom(save);save.roomWord=null;prepareReview();persist();if(phase==='ending'){start=time;locked=true;hud();return;}hero=230;target=230;if(room().kind==='boss')startBossIntro();else hud();}
 function showMap(reason){if(locked&&reason==='view')return;mapReason=reason;mapOpenedAt=time;overlay.hidden=false;overlay.innerHTML=`<div class="map-card"><canvas id="map-canvas" aria-label="Amusement park restoration map"></canvas>${button('Close map','close','round close','close-map')}</div>`;$('#close-map').onclick=()=>{overlay.hidden=true;if(mapReason==='tutorial'||mapReason==='reward')advance();};}
-canvas.addEventListener('pointerdown',e=>{if(e.isPrimary===false||e.button!==0||phase!=='explore'||locked||!overlay.hidden)return;const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width*1400+cameraX;target=Math.max(130,Math.min(save.solved?1220:WAIT_X,x));if(x>WAIT_X-70&&!save.solved)target=WAIT_X;});
+canvas.addEventListener('pointerdown',e=>{if(e.isPrimary===false||e.button!==0||phase!=='explore'||locked||!overlay.hidden)return;const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width*1400+cameraX;target=Math.max(130,Math.min(save.solved?1220:waitX(),x));if(x>waitX()-70&&!save.solved)target=waitX();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)sound.quiet();});
 window.addEventListener('pagehide',()=>{if(puzzle)save.puzzle=puzzle;persist();});
 function resize(){const r=canvas.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(r.width*d);canvas.height=Math.round(r.height*d);}window.addEventListener('resize',resize);resize();
 function draw(now){const elapsedDelta=(now-last)/1000,dt=Math.min(elapsedDelta,.1);last=now;time+=elapsedDelta;frame++;const cueStart=phase==='action'?actionStart:phase.startsWith('boss-')?bossStarted:start;sound.frame(phase,phase+':'+cueStart,time-cueStart,word().id,room().kind==='tutorial',save.bossStep===2);ctx.setTransform(canvas.width/1400,0,0,canvas.height/900,0,0);const r=room();
  if(phase==='opening'){openingElapsed=time-start;hero=235+Math.min(openingElapsed,3)*30;if(openingElapsed>11){locked=false;phase='explore';hero=325;target=325;hud();hint(true);}}
- if(phase==='explore'){const old=hero;if(Math.abs(target-hero)>2)heroFace=target>hero?1:-1;hero+=Math.sign(target-hero)*Math.min(Math.abs(target-hero),dt*190);if(Math.abs(old-WAIT_X)>=90&&Math.abs(hero-WAIT_X)<90)hud();if(Math.abs(old-WAIT_X)<90&&Math.abs(hero-WAIT_X)>=90)hud();}
+ if(phase==='explore'){const old=hero;if(Math.abs(target-hero)>2)heroFace=target>hero?1:-1;hero+=Math.sign(target-hero)*Math.min(Math.abs(target-hero),dt*190);if(Math.abs(old-waitX())>=90&&Math.abs(hero-waitX())<90)hud();if(Math.abs(old-waitX())<90&&Math.abs(hero-waitX())>=90)hud();}
  sceneOffset+=((phase==='puzzle'?-125:0)-sceneOffset)*Math.min(1,dt*8);const backdrop={time,zone:phase==='ending'&&time-start>12?0:r.zone,scene:phase==='title'?'road':phase==='ending'?(time-start>12?'road':'hall'):r.scene,opening:phase==='opening'?openingElapsed:0,restored:save.restored,title:phase==='title'};art.background(ctx,backdrop);ctx.translate(0,sceneOffset);if(Math.abs(sceneOffset)>.1)art.background(ctx,backdrop);
  // Follow the encounter without changing contact points or shrinking the characters.
- const focusX=phase==='boss-reaction'?450:phase==='boss-intro'?320:r.kind==='boss'&&phase==='action'?205+245*actionFrame(actionWord,time-actionStart,hero).cross:r.kind==='tutorial'&&phase==='action'?Math.max(0,Math.min(450,collisionFrame(time-actionStart,hero).x-700)):phase==='opening'?150:['title','ending'].includes(phase)?0:Math.max(0,Math.min(205,(hero-230)*.6));
- cameraX+=(focusX-cameraX)*Math.min(1,dt*3);
+ const focusX=r.kind==='tutorial'?0:phase==='boss-reaction'?450:phase==='boss-intro'?320:r.kind==='boss'&&phase==='action'?205+245*actionFrame(actionWord,time-actionStart,hero).cross:['title','ending'].includes(phase)?0:Math.max(0,Math.min(205,(hero-230)*.6));
+ if(r.kind==='tutorial')cameraX=0;else cameraX+=(focusX-cameraX)*Math.min(1,dt*3);
  ctx.translate(-cameraX,0);
  const interact=$('.interact');if(interact)interact.style.left=((hero-cameraX)/14)+'%';
  let px=hero,py=653,walk=Math.abs(hero-target)>2&&phase==='explore',running=false,pose='';
@@ -166,7 +167,7 @@ function draw(now){const elapsedDelta=(now-last)/1000,dt=Math.min(elapsedDelta,.
  if(phase!=='ending'){if(phase==='title'){art.child(180,860,time,{scale:1.1});art.villain(1250,860,time,{scale:1});}else art.child(px,py,time,{walking:walk,running,pose,face:phase==='explore'?heroFace:1});}
 
  if(hintUntil>time&&phase!=='title'){ctx.save();ctx.translate(cameraX,-sceneOffset);const head={x:px-cameraX,y:py+sceneOffset-175};let layout={x:Math.max(230,Math.min(1170,head.x+270)),y:310,scale:1};if(phase==='puzzle'){const bounds=canvas.getBoundingClientRect(),bar=$('.topbar').getBoundingClientRect(),tray=panel.getBoundingClientRect();layout=thoughtLayout(head.x,(bar.bottom-bounds.top)/bounds.height*900+16,(tray.top-bounds.top)/bounds.height*900-20);}ctx.translate(layout.x,layout.y);ctx.scale(layout.scale,layout.scale);art.bubble(ctx,0,0,word().id,Math.min(6.8,(time-hintStarted)*1.42),encounterVariant(word().id,save.learning.history,false,r.scene),r.kind==='tutorial',{x:(head.x-layout.x)/layout.scale,y:(head.y-layout.y)/layout.scale});ctx.restore();}
- if(phase==='explore'&&!save.solved&&hero<WAIT_X-100){art.use(ctx);art.ellipse(WAIT_X,664,22+Math.sin(time*3)*4,7,'#fff3cd99');art.line([[WAIT_X-12,656],[WAIT_X,646],[WAIT_X+12,656]],'#f9f0da',4);}
+ if(phase==='explore'&&!save.solved&&hero<waitX()-100){art.use(ctx);art.ellipse(waitX(),664,22+Math.sin(time*3)*4,7,'#fff3cd99');art.line([[waitX()-12,656],[waitX(),646],[waitX()+12,656]],'#f9f0da',4);}
  if(!overlay.hidden&&$('#map-canvas')){const mc=$('#map-canvas'),rect=mc.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);if(mc.width!==Math.round(rect.width*d)){mc.width=Math.round(rect.width*d);mc.height=Math.round(rect.height*d);}art.map(mc.getContext('2d'),mc.width,mc.height,save.restored,time,mapReason==='reward'?room().zone:-1,Math.min(1,(time-mapOpenedAt)/2));}
  requestAnimationFrame(draw);
 }
