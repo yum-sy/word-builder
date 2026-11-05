@@ -5,7 +5,7 @@ export function levelFor(word,state,boss=false){
  const base=score>=12?4:score>=7?3:score>=3?2:1;
  return Math.min(4,base+(boss?1:0));
 }
-export function recordResult(state,word,{errors=0,hint=false,boss=false,now=Date.now(),confusions=[]}={}){
+export function recordResult(state,word,{errors=0,hint=false,boss=false,now=Date.now(),confusions=[],support=[]}={}){
  const old=state.words[word.id]||{score:0,successes:0,last:0};
  const spaced=old.last>0&&now-old.last>=24*60*60*1000;
  const gain=errors?0.25:hint?0.5:spaced?2:1;
@@ -13,7 +13,7 @@ export function recordResult(state,word,{errors=0,hint=false,boss=false,now=Date
  state.words[word.id]={score,successes:old.successes+1,last:now,due:now+(errors?1:score<3?1:score<7?3:7)*86400000};
  for(const g of word.groups){const p=state.phonemes[g.phoneme]||{score:0,successes:0};state.phonemes[g.phoneme]={score:Math.max(0,p.score+gain-(boss?0:Math.min(1,errors*.25))),successes:p.successes+1};}
  for(const {expected,actual} of confusions){const key=expected+'>'+actual;state.confusions[key]=(state.confusions[key]||0)+1;}
- state.history.push({word:word.id,errors,hint,boss,spaced,now});state.history=state.history.slice(-1000);
+ state.history.push({word:word.id,errors,hint,boss,spaced,now,support:support.map(event=>({...event}))});state.history=state.history.slice(-1000);
  return state;
 }
 export function downgrade(level,consecutive){return consecutive>=2?Math.max(1,level-1):level;}
@@ -26,4 +26,16 @@ export function chooseReview(options,state,{now=Date.now(),lastWord=null}={}){
  const known=options.filter(id=>state.words[id]?.successes>0);if(!known.length)return options[0];
  const score=id=>{const w=state.words[id];return (w.due<=now?8:0)+Math.max(0,8-w.score)+(id===lastWord?-6:0);};
  return known.reduce((best,id)=>score(id)>score(best)?id:best,known[0]);
+}
+
+// Persist support immediately, including unfinished attempts; automatic teaching is separate.
+export function recordSupport(state,puzzle,type,{automatic=false,now=Date.now()}={}){
+ const event={type,automatic,now,filled:puzzle.letters.filter(Boolean).length,errors:puzzle.errors||0};
+ puzzle.support=[...(puzzle.support||[]),event];
+ if(!automatic)puzzle.hint=true;
+ state.supportTotals ||= {};
+ const totals=state.supportTotals[puzzle.word] ||= {picture:0,audio:0,automatic:0};
+ totals[automatic?'automatic':type]++;
+ state.supportHistory=[...(state.supportHistory||[]),{word:puzzle.word,...event}].slice(-2000);
+ return event;
 }
