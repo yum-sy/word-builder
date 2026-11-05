@@ -48,3 +48,5 @@ html,body{overscroll-behavior:none}
 @media(max-width:850px),(max-height:560px){.round.next{width:112px;height:104px;font-size:48px;right:20px;bottom:20px}.puzzle-head .picture-hint{min-width:90px;font-size:17px;height:34px}}
 
 #puzzle[aria-busy="true"] .slot,#puzzle[aria-busy="true"] .letter{opacity:.8}
+
+.hint-head-spacer{width:48px;flex-shrink:0}

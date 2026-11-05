@@ -1,20 +1,20 @@
-import {protectGameInput} from './input-guard.js?v=e0a0fa1325117953';
-import {isInstalled,installApp} from './install.js?v=e0a0fa1325117953';
-import {collisionFrame,TUTORIAL_END} from './story.js?v=e0a0fa1325117953';
-import {bossIntro,bossReaction} from './boss.js?v=e0a0fa1325117953';
-import {actionFrame,encounterVariant,ACTION_DURATION} from './encounters.js?v=e0a0fa1325117953';
-import {settleAction,nextRoom,validSave,stageProgress} from './progress.js?v=e0a0fa1325117953';
-import {WORDS,ROOMS,ZONES,TUTORIAL,LETTER_SOUNDS} from './content.js?v=e0a0fa1325117953';
-import {emptyLearning,chooseReview,levelFor,recordResult,recordSupport,downgrade,candidates,sharedPool} from './learning.js?v=e0a0fa1325117953';
-import {Sound} from './audio.js?v=e0a0fa1325117953';
-import * as art from './art.js?v=e0a0fa1325117953';
+import {protectGameInput} from './input-guard.js?v=6fe8765269f214f1';
+import {isInstalled,installApp} from './install.js?v=6fe8765269f214f1';
+import {collisionFrame,TUTORIAL_END} from './story.js?v=6fe8765269f214f1';
+import {bossIntro,bossReaction} from './boss.js?v=6fe8765269f214f1';
+import {actionFrame,encounterVariant,ACTION_DURATION} from './encounters.js?v=6fe8765269f214f1';
+import {settleAction,nextRoom,validSave,stageProgress} from './progress.js?v=6fe8765269f214f1';
+import {WORDS,ROOMS,ZONES,TUTORIAL,LETTER_SOUNDS} from './content.js?v=6fe8765269f214f1';
+import {emptyLearning,chooseReview,levelFor,recordResult,recordSupport,downgrade,candidates,sharedPool} from './learning.js?v=6fe8765269f214f1';
+import {Sound} from './audio.js?v=6fe8765269f214f1';
+import * as art from './art.js?v=6fe8765269f214f1';
 const $=s=>document.querySelector(s), canvas=$('#world'),ctx=canvas.getContext('2d'),ui=$('#ui'),panel=$('#puzzle'),overlay=$('#overlay');
 const qaParams=new URLSearchParams(location.search),qaMode=['127.0.0.1','localhost'].includes(location.hostname)&&qaParams.get('qa')==='1';
 const SAVE=qaMode&&qaParams.has('room')?'word-builder-qa-v1':qaParams.get('audio')==='review'?'word-builder-audio-review-v1':qaMode?'word-builder-qa-v1':'word-builder-v1',sound=new Sound();
 const fresh=()=>({version:1,room:0,bossStep:0,mapUnlocked:false,restored:[],completed:false,solved:false,puzzle:null,learning:emptyLearning()});
 let save;try{save=JSON.parse(localStorage.getItem(SAVE));if(!validSave(save))save=fresh();}catch{save=fresh();}
 if(qaMode&&qaParams.has('room')){save=fresh();save.room=Math.max(0,Math.min(100,Number(qaParams.get('room'))||0));save.mapUnlocked=save.room>0;save.restored=Array.from({length:Math.floor(Math.max(0,save.room-1)/10)},(_,i)=>i);}
-let phase='title',hero=280,target=280,time=0,start=0,actionStart=0,actionWord='',hintUntil=0,puzzle=null,selected=0,locked=false,mapReason='',mapOpenedAt=0,last=performance.now(),openingElapsed=0,frame=0,volumeOpen=false,drag=null,dragSuppressedUntil=0,storageFailed=false,sceneOffset=0,cameraX=0,bossStarted=0,heroFace=1;
+let phase='title',hero=280,target=280,time=0,start=0,actionStart=0,actionWord='',hintUntil=0,hintStarted=0,puzzle=null,selected=0,locked=false,mapReason='',mapOpenedAt=0,last=performance.now(),openingElapsed=0,frame=0,volumeOpen=false,drag=null,dragSuppressedUntil=0,storageFailed=false,sceneOffset=0,cameraX=0,bossStarted=0,heroFace=1;
 const room=()=>{const base=save.room===0?TUTORIAL:ROOMS[save.room-1];return base.kind==='room'&&save.roomWord?{...base,word:save.roomWord,words:[save.roomWord]}:base;};
 function prepareReview(){if(save.room>0&&!save.roomWord){const r=ROOMS[save.room-1];if(qaMode&&qaParams.has('room')){save.roomWord=r.word;return;}if(r.kind==='room')save.roomWord=chooseReview(r.reviewOptions,save.learning,{lastWord:save.learning.history.at(-1)?.word});persist();}}
 const word=()=>WORDS[room().words[save.bossStep]||room().word];
@@ -53,12 +53,12 @@ window.addEventListener('app-install-state',()=>{if(phase==='title')drawTitle();
 function parents(){overlay.hidden=false;overlay.innerHTML=`<section class="parent"><h2>For grown-ups</h2><p>Touch the path to walk. Use the thought bubble for a picture hint. Build a word, then tap ✓.</p><p>Progress stays in this browser. No timers, lives, or penalties.</p><p>Whole-word voices, when enabled, are AI-generated. Only reviewed audio is played. </p><p>${storageFailed?'Storage is unavailable. Progress cannot be saved.':'Audio approval and pronunciation review are managed separately.'}</p><button id="parent-close">Close</button></section>`;$('#parent-close').onclick=()=>overlay.hidden=true;}
 async function begin(){prepareReview();try{await sound.init();}catch{overlay.hidden=false;overlay.innerHTML='<section class="parent"><p>Audio could not start. Tap Play to try again.</p><button id="retry-audio">Play</button></section>';$('#retry-audio').onclick=begin;return;}save.started=true;persist();overlay.hidden=true;if(save.completed){phase='ending';start=time;hud();return;}if(save.room===0&&!save.puzzle&&!save.solved){phase='opening';start=time;openingElapsed=0;hero=235;target=520;locked=true;hud();}else{phase='explore';hero=save.solved?1100:qaMode&&qaParams.has('room')?720:360;target=hero;hud();if(save.actionPending){if(save.room===0)hero=target=325;phase='action';actionStart=time;actionWord=word().id;locked=true;}else if(save.solved&&room().kind==='boss'){showMap('reward');}else if(save.puzzle){puzzle=save.puzzle;openPuzzle(true);}else if(room().kind==='boss')startBossIntro();}}
 function newPuzzle(){const w=word();return {word:w.id,letters:w.letters.map(()=>''),level:qaMode&&qaParams.has('level')?Math.max(1,Math.min(4,Number(qaParams.get('level'))||1)):levelFor(w,save.learning,room().kind==='boss'),errors:0,consecutive:0,hint:false,confusions:[],pool:shuffle(sharedPool(w)),options:w.letters.map(l=>shuffle(candidates(l,2)))};}
-async function hint(auto=false){if(locked)return;puzzle=puzzle||newPuzzle();recordSupport(save.learning,puzzle,'picture',{automatic:auto});save.puzzle=puzzle;persist();locked=true;if(phase==='puzzle'){panel.setAttribute('aria-busy','true');panel.querySelectorAll('button').forEach(b=>b.disabled=true);}hintUntil=time+4.8;hud();await sound.play(word().wordAudio);await wait(600);await sound.play(word().wordAudio);await wait(1900);await wait(Math.max(0,(hintUntil-time)*1000));hintUntil=0;locked=false;if(phase==='puzzle'){panel.removeAttribute('aria-busy');renderPuzzle();}if(auto)openPuzzle();else hud();}
+async function hint(auto=false){if(locked)return;puzzle=puzzle||newPuzzle();recordSupport(save.learning,puzzle,'picture',{automatic:auto});save.puzzle=puzzle;persist();locked=true;if(phase==='puzzle'){panel.setAttribute('aria-busy','true');panel.querySelectorAll('button').forEach(b=>b.disabled=true);}hintStarted=time;hintUntil=Infinity;hud();await sound.play(word().wordAudio);await wait(600);await sound.play(word().wordAudio);await wait(1900);await wait(Math.max(0,(4.8-(time-hintStarted))*1000));hintUntil=0;locked=false;if(phase==='puzzle'){panel.removeAttribute('aria-busy');renderPuzzle();}if(auto)openPuzzle();else hud();}
 function openPuzzle(restore=false){if(locked)return;puzzle=restore?puzzle:(puzzle||newPuzzle());if(puzzle.word!==word().id)puzzle=newPuzzle();phase='puzzle';selected=Math.max(0,puzzle.letters.findIndex(l=>!l));panel.hidden=false;$('#game').classList.add('puzzle-open');hud();renderPuzzle();save.puzzle=puzzle;persist();}
-function renderPuzzle(bad=[]){const w=word(),level=puzzle.level;panel.classList.toggle('columns-mode',level<=2);panel.innerHTML=`<div class="puzzle-head">${button('Close puzzle','close','','close-puzzle')}<button id="picture-hint" class="picture-hint" aria-label="Picture hint">☁ Hint</button>${button('Hear the word','sound','sound','hear-word')}</div><div class="slots">${w.letters.map((_,i)=>`<button class="slot ${i===selected?'active':''} ${bad.includes(i)?'bad':''}" data-slot="${i}" aria-label="Letter slot ${i+1}">${puzzle.letters[i]||''}</button>`).join('')}</div><div class="choices"></div>${button('Check word','check','submit','submit-word')}`;
+function renderPuzzle(bad=[]){const w=word(),level=puzzle.level;panel.classList.toggle('columns-mode',level<=2);panel.innerHTML=`<div class="puzzle-head">${button('Close puzzle','close','','close-puzzle')}<button id="picture-hint" class="picture-hint" aria-label="Play hint">☁ ▶ Hint</button><span class="hint-head-spacer" aria-hidden="true"></span></div><div class="slots">${w.letters.map((_,i)=>`<button class="slot ${i===selected?'active':''} ${bad.includes(i)?'bad':''}" data-slot="${i}" aria-label="Letter slot ${i+1}">${puzzle.letters[i]||''}</button>`).join('')}</div><div class="choices"></div>${button('Check word','check','submit','submit-word')}`;
  $('#close-puzzle').onclick=()=>{if(locked)return;phase='explore';panel.hidden=true;$('#game').classList.remove('puzzle-open');hud();};
  $('#picture-hint').onclick=()=>hint();
- $('#hear-word').onclick=async()=>{if(locked)return;recordSupport(save.learning,puzzle,'audio');save.puzzle=puzzle;persist();locked=true;await sound.play(w.wordAudio);locked=false;};
+
  panel.querySelectorAll('[data-slot]').forEach(el=>el.onclick=()=>{if(locked)return;selected=Number(el.dataset.slot);if(puzzle.letters[selected])puzzle.letters[selected]='';save.puzzle=puzzle;persist();renderPuzzle();});
  const choices=panel.querySelector('.choices');
  if(level<=2){choices.innerHTML=w.letters.map((l,i)=>{let options=level===1?puzzle.options[i].filter(x=>candidates(l,1).includes(x)):puzzle.options[i];return `<div class="column">${options.map(x=>`<button class="letter" data-letter="${x}" data-column="${i}" aria-label="${x}, slot ${i+1}">${x}</button>`).join('')}</div>`;}).join('');}
@@ -165,7 +165,7 @@ function draw(now){const elapsedDelta=(now-last)/1000,dt=Math.min(elapsedDelta,.
  }
  if(phase!=='ending'){if(phase==='title'){art.child(180,860,time,{scale:1.1});art.villain(1250,860,time,{scale:1});}else art.child(px,py,time,{walking:walk,running,pose,face:phase==='explore'?heroFace:1});}
 
- if(hintUntil>time&&phase!=='title'){ctx.save();if(phase==='puzzle')ctx.translate(cameraX,-sceneOffset);art.bubble(ctx,phase==='puzzle'?700:hero+35,phase==='puzzle'?265:310,word().id,(4.8-(hintUntil-time))*1.42,encounterVariant(word().id,save.learning.history,false,r.scene),r.kind==='tutorial');ctx.restore();}
+ if(hintUntil>time&&phase!=='title'){ctx.save();ctx.translate(cameraX,-sceneOffset);const head={x:px-cameraX,y:py+sceneOffset-175};const cloudX=Math.max(230,Math.min(1170,head.x+180)),cloudY=phase==='puzzle'?235:310;art.bubble(ctx,cloudX,cloudY,word().id,Math.min(6.8,(time-hintStarted)*1.42),encounterVariant(word().id,save.learning.history,false,r.scene),r.kind==='tutorial',head);ctx.restore();}
  if(phase==='explore'&&!save.solved&&hero<620){art.use(ctx);art.ellipse(716,664,22+Math.sin(time*3)*4,7,'#fff3cd99');art.line([[704,656],[716,646],[728,656]],'#f9f0da',4);}
  if(!overlay.hidden&&$('#map-canvas')){const mc=$('#map-canvas'),rect=mc.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);if(mc.width!==Math.round(rect.width*d)){mc.width=Math.round(rect.width*d);mc.height=Math.round(rect.height*d);}art.map(mc.getContext('2d'),mc.width,mc.height,save.restored,time,mapReason==='reward'?room().zone:-1,Math.min(1,(time-mapOpenedAt)/2));}
  requestAnimationFrame(draw);

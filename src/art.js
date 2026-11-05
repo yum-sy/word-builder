@@ -1,7 +1,7 @@
-import {clearMatte,silhouetteRegions} from './sprite-matte.js?v=e0a0fa1325117953';
-import {PARK_PLOTS,PARK_SCALES,trainPoint} from './park.js?v=e0a0fa1325117953';
-import {actionFrame,ease,clamp} from './encounters.js?v=e0a0fa1325117953';
-import {SCENES} from './content.js?v=e0a0fa1325117953';
+import {clearMatte,silhouetteRegions} from './sprite-matte.js?v=6fe8765269f214f1';
+import {PARK_PLOTS,PARK_SCALES,trainPoint} from './park.js?v=6fe8765269f214f1';
+import {actionFrame,ease,clamp} from './encounters.js?v=6fe8765269f214f1';
+import {SCENES} from './content.js?v=6fe8765269f214f1';
 const paintings={},spriteLayers={};
 const actorFrames={};
 function prepareSprite(id,img){
@@ -213,8 +213,8 @@ export function map(ctx,width,height,restored,time=0,reveal=-1,revealProgress=1)
  for(let i=0;i<10;i++){ellipse(422+i*17,638,5,5,restored.includes(i)?'#688c76':'#c6b48e');}
  c.restore();
 }
-export function bubble(ctx,x,y,word,t,variant=0,tutorial=false){
- use(ctx);ellipse(x-35,y+153,7,7,'#fffdf1');ellipse(x-20,y+127,12,11,'#fffdf1');ellipse(x-5,y+96,20,16,'#fffdf1');
+export function bubble(ctx,x,y,word,t,variant=0,tutorial=false,head=null){
+ use(ctx);if(head){for(let i=0;i<3;i++){const p=i/3;ellipse(head.x+28+(x-100-head.x-28)*p,head.y-25+(y+65-head.y+25)*p,6+i*5,6+i*4,"#fffdf1");}}else{ellipse(x-35,y+153,7,7,'#fffdf1');ellipse(x-20,y+127,12,11,'#fffdf1');ellipse(x-5,y+96,20,16,'#fffdf1');}
  c.save();c.shadowColor='#46382435';c.shadowBlur=15;
  c.beginPath();c.moveTo(x-172,y+50);
  c.bezierCurveTo(x-225,y+18,x-216,y-42,x-179,y-58);
