@@ -1,7 +1,7 @@
-import {clearMatte,silhouetteRegions} from './sprite-matte.js?v=acba48cf7b10aad4';
-import {PARK_PLOTS,PARK_SCALES,trainPoint} from './park.js?v=acba48cf7b10aad4';
-import {actionFrame,ease,clamp} from './encounters.js?v=acba48cf7b10aad4';
-import {SCENES} from './content.js?v=acba48cf7b10aad4';
+import {clearMatte,silhouetteRegions} from './sprite-matte.js?v=e56825d642498db6';
+import {PARK_PLOTS,PARK_SCALES,trainPoint} from './park.js?v=e56825d642498db6';
+import {actionFrame,ease,clamp} from './encounters.js?v=e56825d642498db6';
+import {SCENES} from './content.js?v=e56825d642498db6';
 const paintings={},spriteLayers={};
 const actorFrames={};
 function prepareSprite(id,img){
@@ -226,7 +226,7 @@ export function bubble(ctx,x,y,word,t,variant=0,tutorial=false,head=null){
  c.bezierCurveTo(x+88,y+110,x+32,y+94,x+9,y+76);
  c.bezierCurveTo(x-40,y+105,x-91,y+91,x-107,y+65);
  c.bezierCurveTo(x-140,y+87,x-171,y+75,x-172,y+50);c.closePath();c.fillStyle='#fffbed';c.fill();c.strokeStyle='#a18b6d';c.lineWidth=4;c.stroke();c.shadowBlur=0;c.clip();
- c.translate(x-143,y+43);c.scale(.68,.68);const f=actionFrame(word,t,720,variant);
+ c.translate(x-143,y+43);c.scale(.68,.68);const f=actionFrame(word,t,620,variant);
  if(tutorial&&word==='run'){
   const approach=ease(t/4.6);
   villain(420,0,t,{scale:.55,pose:'away',walking:approach<1});
@@ -263,7 +263,7 @@ export function encounter(word,x,y,t,p=0,variant=0,cross=0){
   }else{
    const drift=fall*205;cart(drift,-fall*55);timber(-115,-105,17,114);line([[-107,-95],[-20,-60+snip*95]],'#edcf9d',6);if(snip<.5)line([[-20,-60],[45,-65]],'#edcf9d',6);
   }
-  if(p>0&&p<.82){const sy=variant===0?-176:variant===1?-170:-70;scissors(-50,sy,1-snip);}
+  if(p>0&&p<.82){const sy=variant===0?-176:variant===1?-170:-70;scissors(-150,sy,1-snip);}
   if(snip>.05&&snip<.95)for(let i=0;i<7;i++){const a=i*2.4;line([[Math.cos(a)*20,-170+Math.sin(a)*20],[Math.cos(a)*38,-170+Math.sin(a)*38]],'#fff0bd',3);}
  }else if(word==='sun'){
   const dry=ease((p-.25)/.75);c.save();c.globalAlpha=1-dry;
@@ -333,10 +333,10 @@ export function encounter(word,x,y,t,p=0,variant=0,cross=0){
  }else if(word==='dig'){
   const scoop=ease((p-.2)/.8);c.save();c.scale(1,1-scoop*.92);ellipse(0,-24,115,53,'#a07a51');ellipse(-15,-40,87,27,'#c5a270');c.restore();
   for(let i=0;i<5;i++){const rx=-90+i*45;ellipse(rx,-3,23,10,'#a9b39b');}
-  if(p>0&&p<1){c.save();c.translate(-65,-70);c.rotate(Math.sin(t*7)*.5);line([[0,-105],[0,5]],'#9b7148',9);poly([[-23,-5],[23,-5],[18,28],[0,42],[-18,28]],'#91a8a2','#566f69');c.restore();for(let i=0;i<8;i++){const flight=(t*1.7+i*.13)%1;ellipse(-10+flight*170,-40-Math.sin(flight*Math.PI)*80,5+i%4,4,'#b48c5e');}}
+  if(p>0&&p<1){c.save();c.translate(-100,-70);c.rotate(Math.sin(t*7)*.5);line([[0,-105],[0,5]],'#9b7148',9);poly([[-23,-5],[23,-5],[18,28],[0,42],[-18,28]],'#91a8a2','#566f69');c.restore();for(let i=0;i<8;i++){const flight=(t*1.7+i*.13)%1;ellipse(-10+flight*170,-40-Math.sin(flight*Math.PI)*80,5+i%4,4,'#b48c5e');}}
  }else if(word==='chop'){
   const split=ease((p-.35)/.65);for(const side of [-1,1]){c.save();c.translate(side*split*115,-split*45);c.rotate(side*split*.4);timber(side<0?-115:3,-48,112,46);c.restore();}
-  if(p>0&&p<.75){c.save();c.translate(-10,-65);c.rotate(-.8+ease(p/.5)*1.6);line([[0,-110],[0,15]],'#986d46',8);poly([[-8,-105],[28,-112],[48,-81],[-8,-69]],'#b7cac7','#69827f');c.restore();}
+  if(p>0&&p<.75){c.save();c.translate(-70,-65);c.rotate(-.8+ease(p/.5)*1.6);line([[0,-110],[0,15]],'#986d46',8);poly([[-8,-105],[28,-112],[48,-81],[-8,-69]],'#b7cac7','#69827f');c.restore();}
  }else if(['spin','turn','coin'].includes(word)){
   crossingGap(45,15,255);const move=ease((p-.25)/.75);
   c.save();c.translate(-70,0);c.rotate(word==='turn'?(1-move)*.8:-(1-move)*1.3);for(let i=0;i<8;i++)timber(i*28,-13,27,23);c.restore();
@@ -349,7 +349,7 @@ export function encounter(word,x,y,t,p=0,variant=0,cross=0){
   if(p>0&&p<1)for(let i=0;i<5;i++)ripple(-110+i*55,9,(t*25+i*9)%32,.45);
   cloud(0,-240,1.4,'#94a9a7');if(p>0&&p<1)for(let i=0;i<24;i++){const ry=((t*160+i*37)%210)-220;line([[-130+i*11,ry],[-134+i*11,ry+15]],'#91c6d7',3);}
  }else if(word==='team'){
-  const push=ease((p-.45)/.55);cart(-40+push*170,-push*65);if(p>.25){child(-155+push*170,8-push*65,t,{scale:.65,walking:push>0&&push<1,pose:'reach'});child(-220+push*170,8-push*65,t+1,{scale:.65,walking:push>0&&push<1,pose:'reach'});}
+  const push=ease((p-.45)/.55);cart(-40+push*170,-push*65);if(p>.25){child(-245,-25,t,{scale:.65,walking:push>0&&push<1,pose:'reach'});child(-330,-25,t+1,{scale:.65,walking:push>0&&push<1,pose:'reach'});}
  }else if(word==='stop'){
   // Cart repeatedly crosses the route until the hand stops and parks it.
   const park=ease((p-.4)/.6),cx=p===0?Math.sin(t*2)*90:90*park,cy=-park*90;
@@ -368,12 +368,12 @@ export function encounter(word,x,y,t,p=0,variant=0,cross=0){
   if(word==='rope'){
    // Rope exists visibly coiled before use; pulling it releases bridge latch.
    c.strokeStyle='#d9ba81';c.lineWidth=6;c.beginPath();c.ellipse(-110,-23,26,12,0,0,Math.PI*4);c.stroke();
-   line([[-130-latch*25,-45],[150,-165],[150,-140+latch*60]],'#e8cb92',5);
+   line([[-150-latch*15,-105],[150,-165],[150,-140+latch*60]],'#e8cb92',5);
   }else{
    const kx=-45-latch*35,ky=-70-latch*190;
    poly([[kx,ky-44],[kx+32,ky],[kx,ky+43],[kx-32,ky]],'#e9b46a','#9f775b');poly([[kx,ky-44],[kx+32,ky],[kx,ky+43]],'#a1c4bc');
    line([[kx,ky+43],[kx-12,ky+65],[kx+7,ky+86]],'#d69788',4);
-   line([[kx,ky+43],[150,-140-latch*30]],'#e3ce9f',3);
+   line([[kx,ky+43],[150,-140-latch*30]],'#e3ce9f',3);line([[-150,-105],[kx,ky+43]],'#e3ce9f',3);
    if(latch<1)for(let i=0;i<3;i++)line([[-150,-180+i*30],[-105,-187+i*30]],'#e6efd7',3);
   }
   box(135,-140+latch*18,28,13,3,latch<.9?'#d6a967':'#b9cda4');

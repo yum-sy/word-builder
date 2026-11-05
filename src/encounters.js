@@ -2,6 +2,10 @@
 export const clamp = n => Math.max(0, Math.min(1, n));
 export const ease = n => { const p=clamp(n); return p*p*(3-2*p); };
 export const ACTION_DURATION=6.8;
+export const WAIT_X=620;
+// Standing bodies stay left of solid fixtures; hands may reach into the tool area.
+export function actionAnchor(word){return ({cut:700,dig:730,chop:730,drum:730,tap:715,spin:675,turn:675,coin:675,rope:700,kite:700,seed:700,net:750,fish:750,sun:700,rain:700,cloud:700,shut:800})[word]||750;}
+
 export function encounterVariant(word,history=[],pending=false,scene=''){
  const count=history.filter(entry=>entry.word===word).length-(pending?1:0);
  const indoors=['workshop','greenhouse','theatre','gallery','atelier','hall'].includes(scene);
@@ -9,8 +13,8 @@ export function encounterVariant(word,history=[],pending=false,scene=''){
  if(word==='hop'&&indoors)return 1;
  return Math.max(0,count)%3;
 }
-export function actionFrame(word,seconds,origin=720,variant=0){
- const effect=ease((seconds-.8)/2.3),cross=ease((seconds-3.25)/2.9),anchor=({cut:805,dig:805,chop:815,drum:790})[word]||750;
+export function actionFrame(word,seconds,origin=WAIT_X,variant=0){
+ const effect=ease((seconds-.8)/2.3),cross=ease((seconds-3.25)/2.9),anchor=actionAnchor(word);
  let x=origin+(anchor-origin)*ease(seconds/.8),y=653,pose=seconds<3.25?'reach':'',walking=false,running=false;
  if(seconds>=3.25){x=anchor+cross*(1130-anchor);walking=cross<1;}
  if(seconds<3.25){
