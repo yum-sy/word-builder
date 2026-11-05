@@ -1,0 +1,223 @@
+{
+  "method": "20ms active RMS; frames below -20dB of strongest frame excluded; median original phoneme reference; peak ceiling 0.95",
+  "referenceRms": 0.1810301707132586,
+  "files": {
+    "assets/audio/words/boat.wav": {
+      "gain": 1.83773,
+      "activeRms": 0.09851,
+      "peak": 0.4292,
+      "gainDb": 5.29,
+      "peakLimited": false
+    },
+    "assets/audio/words/car.wav": {
+      "gain": 1.8782,
+      "activeRms": 0.09639,
+      "peak": 0.38516,
+      "gainDb": 5.47,
+      "peakLimited": false
+    },
+    "assets/audio/words/chop.wav": {
+      "gain": 2.129,
+      "activeRms": 0.08503,
+      "peak": 0.38135,
+      "gainDb": 6.56,
+      "peakLimited": false
+    },
+    "assets/audio/words/clap.wav": {
+      "gain": 1.90488,
+      "activeRms": 0.08647,
+      "peak": 0.49872,
+      "gainDb": 5.6,
+      "peakLimited": true
+    },
+    "assets/audio/words/cloud.wav": {
+      "gain": 2.31908,
+      "activeRms": 0.07806,
+      "peak": 0.34872,
+      "gainDb": 7.31,
+      "peakLimited": false
+    },
+    "assets/audio/words/coin.wav": {
+      "gain": 1.3958,
+      "activeRms": 0.1297,
+      "peak": 0.5101,
+      "gainDb": 2.9,
+      "peakLimited": false
+    },
+    "assets/audio/words/cube.wav": {
+      "gain": 1.99846,
+      "activeRms": 0.09058,
+      "peak": 0.3067,
+      "gainDb": 6.01,
+      "peakLimited": false
+    },
+    "assets/audio/words/cut.wav": {
+      "gain": 2.31842,
+      "activeRms": 0.07808,
+      "peak": 0.33826,
+      "gainDb": 7.3,
+      "peakLimited": false
+    },
+    "assets/audio/words/dig.wav": {
+      "gain": 1.37844,
+      "activeRms": 0.13133,
+      "peak": 0.45224,
+      "gainDb": 2.79,
+      "peakLimited": false
+    },
+    "assets/audio/words/drum.wav": {
+      "gain": 1.8918,
+      "activeRms": 0.08431,
+      "peak": 0.50217,
+      "gainDb": 5.54,
+      "peakLimited": true
+    },
+    "assets/audio/words/fish.wav": {
+      "gain": 1.49274,
+      "activeRms": 0.12127,
+      "peak": 0.60489,
+      "gainDb": 3.48,
+      "peakLimited": false
+    },
+    "assets/audio/words/fork.wav": {
+      "gain": 1.56084,
+      "activeRms": 0.11598,
+      "peak": 0.40353,
+      "gainDb": 3.87,
+      "peakLimited": false
+    },
+    "assets/audio/words/hop.wav": {
+      "gain": 2.94652,
+      "activeRms": 0.06144,
+      "peak": 0.30035,
+      "gainDb": 9.39,
+      "peakLimited": false
+    },
+    "assets/audio/words/horn.wav": {
+      "gain": 2.65171,
+      "activeRms": 0.06827,
+      "peak": 0.24142,
+      "gainDb": 8.47,
+      "peakLimited": false
+    },
+    "assets/audio/words/kite.wav": {
+      "gain": 2.0849,
+      "activeRms": 0.07121,
+      "peak": 0.45566,
+      "gainDb": 6.38,
+      "peakLimited": true
+    },
+    "assets/audio/words/net.wav": {
+      "gain": 1.36545,
+      "activeRms": 0.13258,
+      "peak": 0.56021,
+      "gainDb": 2.71,
+      "peakLimited": false
+    },
+    "assets/audio/words/pop.wav": {
+      "gain": 2.32241,
+      "activeRms": 0.0701,
+      "peak": 0.40906,
+      "gainDb": 7.32,
+      "peakLimited": true
+    },
+    "assets/audio/words/rain.wav": {
+      "gain": 1.69819,
+      "activeRms": 0.08899,
+      "peak": 0.55942,
+      "gainDb": 4.6,
+      "peakLimited": true
+    },
+    "assets/audio/words/rope.wav": {
+      "gain": 1.76201,
+      "activeRms": 0.10274,
+      "peak": 0.39139,
+      "gainDb": 4.92,
+      "peakLimited": false
+    },
+    "assets/audio/words/run.wav": {
+      "gain": 1.69681,
+      "activeRms": 0.08651,
+      "peak": 0.55988,
+      "gainDb": 4.59,
+      "peakLimited": true
+    },
+    "assets/audio/words/seed.wav": {
+      "gain": 1.76943,
+      "activeRms": 0.10231,
+      "peak": 0.30853,
+      "gainDb": 4.96,
+      "peakLimited": false
+    },
+    "assets/audio/words/ship.wav": {
+      "gain": 2.43782,
+      "activeRms": 0.07426,
+      "peak": 0.27731,
+      "gainDb": 7.74,
+      "peakLimited": false
+    },
+    "assets/audio/words/shut.wav": {
+      "gain": 2.48883,
+      "activeRms": 0.07274,
+      "peak": 0.349,
+      "gainDb": 7.92,
+      "peakLimited": false
+    },
+    "assets/audio/words/slide.wav": {
+      "gain": 2.2481,
+      "activeRms": 0.08053,
+      "peak": 0.28961,
+      "gainDb": 7.04,
+      "peakLimited": false
+    },
+    "assets/audio/words/spin.wav": {
+      "gain": 2.26012,
+      "activeRms": 0.0801,
+      "peak": 0.31635,
+      "gainDb": 7.08,
+      "peakLimited": false
+    },
+    "assets/audio/words/stop.wav": {
+      "gain": 2.25281,
+      "activeRms": 0.08036,
+      "peak": 0.35852,
+      "gainDb": 7.05,
+      "peakLimited": false
+    },
+    "assets/audio/words/sun.wav": {
+      "gain": 2.08359,
+      "activeRms": 0.08688,
+      "peak": 0.3765,
+      "gainDb": 6.38,
+      "peakLimited": false
+    },
+    "assets/audio/words/tap.wav": {
+      "gain": 1.89284,
+      "activeRms": 0.06706,
+      "peak": 0.50189,
+      "gainDb": 5.54,
+      "peakLimited": true
+    },
+    "assets/audio/words/team.wav": {
+      "gain": 2.42416,
+      "activeRms": 0.07468,
+      "peak": 0.26819,
+      "gainDb": 7.69,
+      "peakLimited": false
+    },
+    "assets/audio/words/toy.wav": {
+      "gain": 2.26501,
+      "activeRms": 0.07992,
+      "peak": 0.32037,
+      "gainDb": 7.1,
+      "peakLimited": false
+    },
+    "assets/audio/words/turn.wav": {
+      "gain": 2.20406,
+      "activeRms": 0.08213,
+      "peak": 0.31662,
+      "gainDb": 6.86,
+      "peakLimited": false
+    }
+  }
+}
