@@ -1,5 +1,5 @@
-import {volumeValue} from './encounters.js?v=cb17e6fb03d912ce';
-import {PHONEMES} from './phonemes.js?v=cb17e6fb03d912ce';
+import {volumeValue} from './encounters.js?v=94b02b28136d38e8';
+import {PHONEMES} from './phonemes.js?v=94b02b28136d38e8';
 export class Sound {
  constructor(){this.context=null;this.assets={};this.reviewPreview=['127.0.0.1','localhost'].includes(location.hostname)&&new URLSearchParams(location.search).get('audio')==='review';this.volume=.8;try{const saved=localStorage.getItem('word-builder-volume');if(saved!==null)this.volume=volumeValue(saved);}catch{}this.levels={};this.master=null;this.token=0;this.source=null;this.cache=new Map();this.missing=new Set();}
  async init(){if(!this.context){this.context=new (window.AudioContext||window.webkitAudioContext)();this.master=this.context.createGain();this.master.gain.value=this.volume;this.master.connect(this.context.destination);}await this.context.resume();try{this.levels=(await fetch('./assets/audio/levels.json').then(r=>r.json())).files||{};}catch{}try{this.assets=await fetch('./assets/audio/approved.json').then(r=>r.ok?r.json():{});}catch{this.assets={};}if(this.reviewPreview){try{const library=await fetch('/api/library').then(r=>r.json());for(const item of library.sources)if(!this.assets[item.id])this.assets[item.id]={file:item.phonemeFile,reviewStatus:'pending'};for(const item of library.words)if(item.exists&&!this.assets[item.wordAudio])this.assets[item.wordAudio]={file:`assets/audio/words/${item.id}.wav`,reviewStatus:'pending'};}catch{}}}

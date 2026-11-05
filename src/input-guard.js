@@ -7,7 +7,7 @@ export function protectGameInput(root,onCancel,{doc=document,win=window,now=()=>
  const cancel=()=>{active.clear();onCancel();};
  for(const type of ['selectstart','dragstart','dragover','drop','contextmenu','dblclick','gesturestart','gesturechange','gestureend'])doc.addEventListener(type,event=>{if(protectedTarget(event.target))stop(event);},{capture:true,passive:false});
  doc.addEventListener('wheel',event=>{if(protectedTarget(event.target))stop(event);},{capture:true,passive:false});
- doc.addEventListener('touchmove',event=>{if(protectedTarget(event.target))stop(event);},{passive:false});
+ doc.addEventListener('touchmove',event=>{if(protectedTarget(event.target)&&!event.target.closest?.('input[type=range]'))stop(event);},{passive:false});
  doc.addEventListener('pointerdown',event=>{
   if(!protectedTarget(event.target))return;
   if(event.button!==0||event.isPrimary===false||active.size>0){
