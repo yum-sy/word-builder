@@ -1,13 +1,13 @@
-import {protectGameInput} from './input-guard.js?v=94b02b28136d38e8';
-import {isInstalled,installApp} from './install.js?v=94b02b28136d38e8';
-import {collisionFrame,TUTORIAL_END} from './story.js?v=94b02b28136d38e8';
-import {bossIntro,bossReaction} from './boss.js?v=94b02b28136d38e8';
-import {actionFrame,encounterVariant,ACTION_DURATION} from './encounters.js?v=94b02b28136d38e8';
-import {settleAction,nextRoom,validSave,stageProgress} from './progress.js?v=94b02b28136d38e8';
-import {WORDS,ROOMS,ZONES,TUTORIAL,LETTER_SOUNDS} from './content.js?v=94b02b28136d38e8';
-import {emptyLearning,chooseReview,levelFor,recordResult,downgrade,candidates,sharedPool} from './learning.js?v=94b02b28136d38e8';
-import {Sound} from './audio.js?v=94b02b28136d38e8';
-import * as art from './art.js?v=94b02b28136d38e8';
+import {protectGameInput} from './input-guard.js?v=ba34ddc5817cd7d7';
+import {isInstalled,installApp} from './install.js?v=ba34ddc5817cd7d7';
+import {collisionFrame,TUTORIAL_END} from './story.js?v=ba34ddc5817cd7d7';
+import {bossIntro,bossReaction} from './boss.js?v=ba34ddc5817cd7d7';
+import {actionFrame,encounterVariant,ACTION_DURATION} from './encounters.js?v=ba34ddc5817cd7d7';
+import {settleAction,nextRoom,validSave,stageProgress} from './progress.js?v=ba34ddc5817cd7d7';
+import {WORDS,ROOMS,ZONES,TUTORIAL,LETTER_SOUNDS} from './content.js?v=ba34ddc5817cd7d7';
+import {emptyLearning,chooseReview,levelFor,recordResult,downgrade,candidates,sharedPool} from './learning.js?v=ba34ddc5817cd7d7';
+import {Sound} from './audio.js?v=ba34ddc5817cd7d7';
+import * as art from './art.js?v=ba34ddc5817cd7d7';
 const $=s=>document.querySelector(s), canvas=$('#world'),ctx=canvas.getContext('2d'),ui=$('#ui'),panel=$('#puzzle'),overlay=$('#overlay');
 const qaParams=new URLSearchParams(location.search),qaMode=['127.0.0.1','localhost'].includes(location.hostname)&&qaParams.get('qa')==='1';
 const SAVE=qaMode&&qaParams.has('room')?'word-builder-qa-v1':qaParams.get('audio')==='review'?'word-builder-audio-review-v1':qaMode?'word-builder-qa-v1':'word-builder-v1',sound=new Sound();
@@ -34,6 +34,7 @@ function hud(){
  if(phase==='explore'&&save.solved&&!locked){ui.insertAdjacentHTML('beforeend',button('Continue','next','round next','next-button'));$('#next-button').onclick=advance;}
 }
 function drawTitle(){
+ sound.quiet();
  const continuing=!!(save.started||save.room>0||save.puzzle||save.solved||save.completed);
  ui.innerHTML=`<div class="title-screen"><h1>WORD<br><span>BUILDER</span></h1><div class="title-actions">${continuing?'<button class="play resume-play" id="play-button"><span aria-hidden="true">▶</span> Keep playing</button><button class="start-over" id="start-over">Start over</button>':button('Play','play','play','play-button')} </div><small>✦ &nbsp; A LITTLE WORD. A BIG ADVENTURE. &nbsp; ✦</small></div><div style="position:absolute;right:25px;bottom:20px;pointer-events:auto">${button('For grown-ups','ⓘ','round','parents')}</div>`;
  $('#play-button').onclick=begin;
@@ -90,9 +91,10 @@ function completeAction(){locked=false;phase='explore';const result=settleAction
 function advance(){if(locked)return;sound.stop();puzzle=null;phase=nextRoom(save);save.roomWord=null;prepareReview();persist();if(phase==='ending'){start=time;locked=true;hud();return;}hero=230;target=230;if(room().kind==='boss')startBossIntro();else hud();}
 function showMap(reason){if(locked&&reason==='view')return;mapReason=reason;mapOpenedAt=time;overlay.hidden=false;overlay.innerHTML=`<div class="map-card"><canvas id="map-canvas" aria-label="Amusement park restoration map"></canvas>${button('Close map','close','round close','close-map')}</div>`;$('#close-map').onclick=()=>{overlay.hidden=true;if(mapReason==='tutorial'||mapReason==='reward')advance();};}
 canvas.addEventListener('pointerdown',e=>{if(e.isPrimary===false||e.button!==0||phase!=='explore'||locked||!overlay.hidden)return;const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width*1400;target=Math.max(130,Math.min(save.solved?1220:720,x));if(x>650&&!save.solved)target=720;});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)sound.quiet();});
 window.addEventListener('pagehide',()=>{if(puzzle)save.puzzle=puzzle;persist();});
 function resize(){const r=canvas.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(r.width*d);canvas.height=Math.round(r.height*d);}window.addEventListener('resize',resize);resize();
-function draw(now){const elapsedDelta=(now-last)/1000,dt=Math.min(elapsedDelta,.1);last=now;time+=elapsedDelta;frame++;ctx.setTransform(canvas.width/1400,0,0,canvas.height/900,0,0);const r=room();
+function draw(now){const elapsedDelta=(now-last)/1000,dt=Math.min(elapsedDelta,.1);last=now;time+=elapsedDelta;frame++;const cueStart=phase==='action'?actionStart:phase.startsWith('boss-')?bossStarted:start;sound.frame(phase,phase+':'+cueStart,time-cueStart,word().id,room().kind==='tutorial',save.bossStep===2);ctx.setTransform(canvas.width/1400,0,0,canvas.height/900,0,0);const r=room();
  if(phase==='opening'){openingElapsed=time-start;hero=235+Math.min(openingElapsed,3)*30;if(openingElapsed>11){locked=false;phase='explore';hero=325;target=325;hud();hint(true);}}
  if(phase==='explore'){const old=hero;if(Math.abs(target-hero)>2)heroFace=target>hero?1:-1;hero+=Math.sign(target-hero)*Math.min(Math.abs(target-hero),dt*190);if(Math.abs(old-720)>=90&&Math.abs(hero-720)<90)hud();if(Math.abs(old-720)<90&&Math.abs(hero-720)>=90)hud();}
  sceneOffset+=((phase==='puzzle'?-125:0)-sceneOffset)*Math.min(1,dt*8);const backdrop={time,zone:phase==='ending'&&time-start>12?0:r.zone,scene:phase==='title'?'road':phase==='ending'?(time-start>12?'road':'hall'):r.scene,opening:phase==='opening'?openingElapsed:0,restored:save.restored,title:phase==='title'};art.background(ctx,backdrop);ctx.translate(0,sceneOffset);if(Math.abs(sceneOffset)>.1)art.background(ctx,backdrop);
