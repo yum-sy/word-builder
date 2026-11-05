@@ -32,3 +32,12 @@ body{background:#213e35}.topbar{top:22px}.brand{color:#fff9dc;letter-spacing:2.6
 #boot-screen{position:absolute;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 42%,#486655,#203b33);color:#fff1cc;text-align:center;padding:25px}
 .boot-mark{display:grid;place-items:center;width:76px;height:80px;border:3px solid #ffe2a1;border-radius:23px;background:linear-gradient(135deg,#f5cb78,#c48d3d);font-size:64px;line-height:1;transform:rotate(-8deg);box-shadow:0 6px 0 #8d683e;color:#fff8df;font-weight:bold}
 #boot-screen h1{font-size:32px;margin:22px 0 5px}#boot-screen p{font-size:17px}#boot-progress{width:min(260px,70%);height:12px;accent-color:#ebbc66;border-radius:10px}#boot-retry{margin-top:20px;padding:12px 24px;border:2px solid #ffe3a4;border-radius:14px;background:#edc57b;color:#59492f;font:inherit}
+
+/* The game owns gestures; native selection/drag must never compete with tiles. */
+html,body{overscroll-behavior:none}
+#game,#game *{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#game img,#game svg,#game canvas{-webkit-user-drag:none;user-drag:none}
+#game .parent,#game .parent *,.install-dialog,.install-dialog *{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+#game input[type=range]{touch-action:none}
+.install-dialog{touch-action:pan-y;overscroll-behavior:contain}
+.install-dialog button,#game button{-webkit-user-select:none;user-select:none}

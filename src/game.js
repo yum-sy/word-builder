@@ -1,19 +1,20 @@
-import {isInstalled,installApp} from './install.js?v=f4f1eb605fb7ce99';
-import {collisionFrame,TUTORIAL_END} from './story.js?v=f4f1eb605fb7ce99';
-import {bossIntro,bossReaction} from './boss.js?v=f4f1eb605fb7ce99';
-import {actionFrame,encounterVariant,ACTION_DURATION} from './encounters.js?v=f4f1eb605fb7ce99';
-import {settleAction,nextRoom,validSave,stageProgress} from './progress.js?v=f4f1eb605fb7ce99';
-import {WORDS,ROOMS,ZONES,TUTORIAL,LETTER_SOUNDS} from './content.js?v=f4f1eb605fb7ce99';
-import {emptyLearning,chooseReview,levelFor,recordResult,downgrade,candidates,sharedPool} from './learning.js?v=f4f1eb605fb7ce99';
-import {Sound} from './audio.js?v=f4f1eb605fb7ce99';
-import * as art from './art.js?v=f4f1eb605fb7ce99';
+import {protectGameInput} from './input-guard.js?v=cb17e6fb03d912ce';
+import {isInstalled,installApp} from './install.js?v=cb17e6fb03d912ce';
+import {collisionFrame,TUTORIAL_END} from './story.js?v=cb17e6fb03d912ce';
+import {bossIntro,bossReaction} from './boss.js?v=cb17e6fb03d912ce';
+import {actionFrame,encounterVariant,ACTION_DURATION} from './encounters.js?v=cb17e6fb03d912ce';
+import {settleAction,nextRoom,validSave,stageProgress} from './progress.js?v=cb17e6fb03d912ce';
+import {WORDS,ROOMS,ZONES,TUTORIAL,LETTER_SOUNDS} from './content.js?v=cb17e6fb03d912ce';
+import {emptyLearning,chooseReview,levelFor,recordResult,downgrade,candidates,sharedPool} from './learning.js?v=cb17e6fb03d912ce';
+import {Sound} from './audio.js?v=cb17e6fb03d912ce';
+import * as art from './art.js?v=cb17e6fb03d912ce';
 const $=s=>document.querySelector(s), canvas=$('#world'),ctx=canvas.getContext('2d'),ui=$('#ui'),panel=$('#puzzle'),overlay=$('#overlay');
 const qaParams=new URLSearchParams(location.search),qaMode=['127.0.0.1','localhost'].includes(location.hostname)&&qaParams.get('qa')==='1';
 const SAVE=qaMode&&qaParams.has('room')?'word-builder-qa-v1':qaParams.get('audio')==='review'?'word-builder-audio-review-v1':qaMode?'word-builder-qa-v1':'word-builder-v1',sound=new Sound();
 const fresh=()=>({version:1,room:0,bossStep:0,mapUnlocked:false,restored:[],completed:false,solved:false,puzzle:null,learning:emptyLearning()});
 let save;try{save=JSON.parse(localStorage.getItem(SAVE));if(!validSave(save))save=fresh();}catch{save=fresh();}
 if(qaMode&&qaParams.has('room')){save=fresh();save.room=Math.max(0,Math.min(100,Number(qaParams.get('room'))||0));save.mapUnlocked=save.room>0;save.restored=Array.from({length:Math.floor(Math.max(0,save.room-1)/10)},(_,i)=>i);}
-let phase='title',hero=280,target=280,time=0,start=0,actionStart=0,actionWord='',hintUntil=0,puzzle=null,selected=0,locked=false,mapReason='',mapOpenedAt=0,last=performance.now(),openingElapsed=0,frame=0,volumeOpen=false,drag=null,storageFailed=false,sceneOffset=0,bossStarted=0,heroFace=1;
+let phase='title',hero=280,target=280,time=0,start=0,actionStart=0,actionWord='',hintUntil=0,puzzle=null,selected=0,locked=false,mapReason='',mapOpenedAt=0,last=performance.now(),openingElapsed=0,frame=0,volumeOpen=false,drag=null,dragSuppressedUntil=0,storageFailed=false,sceneOffset=0,bossStarted=0,heroFace=1;
 const room=()=>{const base=save.room===0?TUTORIAL:ROOMS[save.room-1];return base.kind==='room'&&save.roomWord?{...base,word:save.roomWord,words:[save.roomWord]}:base;};
 function prepareReview(){if(save.room>0&&!save.roomWord){const r=ROOMS[save.room-1];if(qaMode&&qaParams.has('room')){save.roomWord=r.word;return;}if(r.kind==='room')save.roomWord=chooseReview(r.reviewOptions,save.learning,{lastWord:save.learning.history.at(-1)?.word});persist();}}
 const word=()=>WORDS[room().words[save.bossStep]||room().word];
@@ -61,15 +62,18 @@ function renderPuzzle(bad=[]){const w=word(),level=puzzle.level;panel.classList.
  if(level<=2){choices.innerHTML=w.letters.map((l,i)=>{let options=level===1?puzzle.options[i].filter(x=>candidates(l,1).includes(x)):puzzle.options[i];return `<div class="column">${options.map(x=>`<button class="letter" data-letter="${x}" data-column="${i}" aria-label="${x}, slot ${i+1}">${x}</button>`).join('')}</div>`;}).join('');}
  else{choices.className='pool';const all=level===4?[...'abcdefghijklmnopqrstuvwxyz']:puzzle.pool;const used={};puzzle.letters.forEach(l=>used[l]=(used[l]||0)+1);choices.innerHTML=all.map((l,i)=>{const consumed=level===3&&used[l]>0;if(consumed)used[l]--;return `<button class="letter" data-letter="${l}" data-pool-index="${i}" ${consumed?'disabled':''} aria-label="${l}">${l}</button>`;}).join('');}
  panel.querySelectorAll('[data-letter]').forEach(el=>{
- el.onclick=()=>{if(drag?.moved||locked)return;place(el.dataset.letter,el.dataset.column===undefined?selected:Number(el.dataset.column));};
- if(level>=3)el.onpointerdown=e=>{if(locked)return;drag={letter:el.dataset.letter,x:e.clientX,y:e.clientY,moved:false};el.setPointerCapture(e.pointerId);};
+ el.onclick=()=>{if(drag?.moved||locked||performance.now()<dragSuppressedUntil)return;place(el.dataset.letter,el.dataset.column===undefined?selected:Number(el.dataset.column));};
+ if(level>=3)el.onpointerdown=e=>{if(locked||e.isPrimary===false||e.button!==0||drag)return;drag={pointerId:e.pointerId,letter:el.dataset.letter,x:e.clientX,y:e.clientY,moved:false};el.setPointerCapture(e.pointerId);};
  });
  $('#submit-word').disabled=puzzle.letters.some(l=>!l);$('#submit-word').onclick=submit;
 }
-function place(letter,index){if(index<0||index>=puzzle.letters.length)return;puzzle.letters[index]=letter;selected=puzzle.letters.findIndex(l=>!l);if(selected<0)selected=index;save.puzzle=puzzle;persist();const group=word().groups.find(g=>g.indices.includes(index));sound.play(letter===word().letters[index]?group.phoneme:LETTER_SOUNDS[letter]);renderPuzzle();}
-window.addEventListener('pointermove',e=>{if(!drag)return;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>7)drag.moved=true;if(drag.moved){let ghost=$('.ghost');if(!ghost){ghost=document.createElement('div');ghost.className='ghost';ghost.textContent=drag.letter;document.body.append(ghost);}ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px';}});
-window.addEventListener('pointerup',e=>{if(!drag)return;const d=drag;$('.ghost')?.remove();if(d.moved){const slot=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-slot]');if(slot)place(d.letter,Number(slot.dataset.slot));}setTimeout(()=>drag=null,0);});
-window.addEventListener('pointercancel',()=>{$('.ghost')?.remove();drag=null;});
+function place(letter,index){if(!puzzle||phase!=='puzzle'||locked)return;if(index<0||index>=puzzle.letters.length)return;puzzle.letters[index]=letter;selected=puzzle.letters.findIndex(l=>!l);if(selected<0)selected=index;save.puzzle=puzzle;persist();const group=word().groups.find(g=>g.indices.includes(index));sound.play(letter===word().letters[index]?group.phoneme:LETTER_SOUNDS[letter]);renderPuzzle();}
+window.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.pointerId)return;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>7)drag.moved=true;if(drag.moved){let ghost=$('.ghost');if(!ghost){ghost=document.createElement('div');ghost.className='ghost';ghost.textContent=drag.letter;document.body.append(ghost);}ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px';}});
+window.addEventListener('pointerup',e=>{if(!drag||e.pointerId!==drag.pointerId)return;const d=drag;$('.ghost')?.remove();if(d.moved){dragSuppressedUntil=performance.now()+350;const slot=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-slot]');if(slot&&panel.contains(slot)&&!panel.hidden&&!locked&&phase==='puzzle')place(d.letter,Number(slot.dataset.slot));}setTimeout(()=>{if(drag===d)drag=null;},0);});
+function cancelDrag(){if(drag)dragSuppressedUntil=performance.now()+350;$('.ghost')?.remove();drag=null;}
+window.addEventListener('pointercancel',cancelDrag);
+window.addEventListener('lostpointercapture',e=>{if(drag?.pointerId===e.pointerId){$('.ghost')?.remove();if(drag.moved)dragSuppressedUntil=performance.now()+350;drag=null;}});
+protectGameInput($('#game'),cancelDrag);
 async function submit(){if(locked||puzzle.letters.some(l=>!l))return;const w=word(),bad=w.letters.map((l,i)=>l!==puzzle.letters[i]?i:-1).filter(i=>i>=0);
  if(bad.length){puzzle.errors++;puzzle.consecutive++;bad.forEach(i=>puzzle.confusions.push({expected:w.letters[i],actual:puzzle.letters[i]}));const next=downgrade(puzzle.level,puzzle.consecutive);if(next!==puzzle.level){puzzle.level=next;puzzle.consecutive=0;}save.puzzle=puzzle;persist();renderPuzzle(bad);return;}
  locked=true;panel.querySelectorAll('button').forEach(b=>b.disabled=true);const slots=[...panel.querySelectorAll('.slot')];slots.forEach(s=>s.classList.add('correct'));
@@ -85,7 +89,7 @@ function completeAction(){locked=false;phase='explore';const result=settleAction
 }
 function advance(){if(locked)return;sound.stop();puzzle=null;phase=nextRoom(save);save.roomWord=null;prepareReview();persist();if(phase==='ending'){start=time;locked=true;hud();return;}hero=230;target=230;if(room().kind==='boss')startBossIntro();else hud();}
 function showMap(reason){if(locked&&reason==='view')return;mapReason=reason;mapOpenedAt=time;overlay.hidden=false;overlay.innerHTML=`<div class="map-card"><canvas id="map-canvas" aria-label="Amusement park restoration map"></canvas>${button('Close map','close','round close','close-map')}</div>`;$('#close-map').onclick=()=>{overlay.hidden=true;if(mapReason==='tutorial'||mapReason==='reward')advance();};}
-canvas.addEventListener('pointerdown',e=>{if(phase!=='explore'||locked||!overlay.hidden)return;const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width*1400;target=Math.max(130,Math.min(save.solved?1220:720,x));if(x>650&&!save.solved)target=720;});
+canvas.addEventListener('pointerdown',e=>{if(e.isPrimary===false||e.button!==0||phase!=='explore'||locked||!overlay.hidden)return;const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width*1400;target=Math.max(130,Math.min(save.solved?1220:720,x));if(x>650&&!save.solved)target=720;});
 window.addEventListener('pagehide',()=>{if(puzzle)save.puzzle=puzzle;persist();});
 function resize(){const r=canvas.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(r.width*d);canvas.height=Math.round(r.height*d);}window.addEventListener('resize',resize);resize();
 function draw(now){const elapsedDelta=(now-last)/1000,dt=Math.min(elapsedDelta,.1);last=now;time+=elapsedDelta;frame++;ctx.setTransform(canvas.width/1400,0,0,canvas.height/900,0,0);const r=room();
