@@ -23,5 +23,5 @@ export async function installApp(){
 }
 // Development review pages keep their live, uncached behavior.
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!['localhost','127.0.0.1'].includes(location.hostname)){
- window.addEventListener('load',()=>{navigator.serviceWorker.register(new URL('../sw.js',import.meta.url),{scope:new URL('../',import.meta.url).pathname}).catch(()=>{});});
+ window.addEventListener('load',()=>{navigator.serviceWorker.register(new URL('../sw.js',import.meta.url),{scope:new URL('../',import.meta.url).pathname,updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>{});});
 }

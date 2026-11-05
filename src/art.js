@@ -20,7 +20,19 @@ function prepareSprite(id,img){
  }
 }
 function actorTile(id,index,height){const tile=actorFrames[id]?.[index];if(!tile)return false;const factor=height/spriteLayers[id].height;c.drawImage(tile,-tile.anchor*factor,-tile.height*factor,tile.width*factor,tile.height*factor);return true;}
-if(typeof Image!=='undefined')for(const [id,file] of Object.entries({heroActions:'hero-actions-v4.png',villainMotion:'villain-motion-v4.png',heroMotion:'hero-motion-v4.png',heroStory:'hero-story-v3.png',parkTitle:'park-title-v4.png',story:'villain-story-v3.png',map:'park-map-v3.png',rides:'ride-atlas-v3.png',road:'park-road-v2.png',zones:'zone-atlas-v2.png',insideA:'interiors-a-v2.png',insideB:'interiors-b-v2.png',hero:'hero-poses-v2.png',villain:'villain-poses-v2.png'})){const img=new Image();if(!['parkTitle','map','road','zones','insideA','insideB'].includes(id))img.onload=()=>prepareSprite(id,img);img.src='./assets/art/'+file;paintings[id]=img;}
+const assetLoads=[];
+let readyCount=0;
+export function artLoadProgress(){return {ready:readyCount,total:assetLoads.length};}
+export function loadArt(){return Promise.all(assetLoads);}
+if(typeof Image!=='undefined')for(const [id,file] of Object.entries({heroActions:'hero-actions-v4.png',villainMotion:'villain-motion-v4.png',heroMotion:'hero-motion-v4.png',heroStory:'hero-story-v3.png',parkTitle:'park-title-v4.png',story:'villain-story-v3.png',map:'park-map-v3.png',rides:'ride-atlas-v3.png',road:'park-road-v2.png',zones:'zone-atlas-v2.png',insideA:'interiors-a-v2.png',insideB:'interiors-b-v2.png',hero:'hero-poses-v2.png',villain:'villain-poses-v2.png'})){
+ const img=new Image();paintings[id]=img;
+ assetLoads.push(new Promise((resolve,reject)=>{
+  img.onload=()=>{try{if(!['parkTitle','map','road','zones','insideA','insideB'].includes(id))prepareSprite(id,img);readyCount++;resolve();}catch(error){reject(error);}};
+  img.onerror=()=>reject(new Error('Image unavailable: '+file));
+  img.src='./assets/art/'+file;
+ }));
+}
+
 const loaded=id=>['parkTitle','map','road','zones','insideA','insideB'].includes(id)?paintings[id]?.complete&&paintings[id].naturalWidth>0:!!spriteLayers[id];
 function sprite(id,sx,sy,sw,sh,x,y,w,h){c.drawImage(spriteLayers[id],sx,sy,sw,sh,x,y,w,h);}
 export const palette={ink:'#40594b',dark:'#3f6550',green:'#7f9f70',leaf:'#a7bf83',gold:'#efbe69',cream:'#fff7df',peach:'#e8ac85',blue:'#83b6ba',purple:'#806f9a'};

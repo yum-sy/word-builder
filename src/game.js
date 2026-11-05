@@ -158,4 +158,15 @@ function draw(now){const elapsedDelta=(now-last)/1000,dt=Math.min(elapsedDelta,.
  if(!overlay.hidden&&$('#map-canvas')){const mc=$('#map-canvas'),rect=mc.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);if(mc.width!==Math.round(rect.width*d)){mc.width=Math.round(rect.width*d);mc.height=Math.round(rect.height*d);}art.map(mc.getContext('2d'),mc.width,mc.height,save.restored,time,mapReason==='reward'?room().zone:-1,Math.min(1,(time-mapOpenedAt)/2));}
  requestAnimationFrame(draw);
 }
-drawTitle();requestAnimationFrame(draw);
+async function startGame(){
+ const boot=$('#boot-screen'),progress=$('#boot-progress');
+ const update=setInterval(()=>{const status=art.artLoadProgress();progress.value=status.total?status.ready/status.total*100:0;},80);
+ try{
+  await art.loadArt();clearInterval(update);progress.value=100;
+  $('#game').setAttribute('aria-busy','false');boot.remove();last=performance.now();drawTitle();requestAnimationFrame(draw);
+ }catch{
+  clearInterval(update);$('#boot-message').textContent='Could not load the game.';
+  $('#boot-retry').hidden=false;$('#boot-retry').onclick=()=>location.reload();
+ }
+}
+startGame();
