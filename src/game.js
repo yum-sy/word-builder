@@ -1,3 +1,4 @@
+import {isInstalled,installApp} from './install.js';
 import {collisionFrame,TUTORIAL_END} from './story.js';
 import {bossIntro,bossReaction} from './boss.js';
 import {actionFrame,encounterVariant,ACTION_DURATION} from './encounters.js';
@@ -40,7 +41,12 @@ function drawTitle(){
   panel.hidden=true;overlay.hidden=true;$('#game').classList.remove('puzzle-open');persist();begin();
  });
  $('#parents').onclick=parents;
+ if(!isInstalled()){
+  ui.insertAdjacentHTML('beforeend','<button class="install-app" id="install-app"><img src="./assets/art/app-icon-192.png" alt="">Install app</button>');
+  $('#install-app').onclick=installApp;
+ }
 }
+window.addEventListener('app-install-state',()=>{if(phase==='title')drawTitle();});
 
 function parents(){overlay.hidden=false;overlay.innerHTML=`<section class="parent"><h2>For grown-ups</h2><p>Touch the path to walk. Use the thought bubble for a picture hint. Build a word, then tap ✓.</p><p>Progress stays in this browser. No timers, lives, or penalties.</p><p>Whole-word voices, when enabled, are AI-generated. Only reviewed audio is played. </p><p>${storageFailed?'Storage is unavailable. Progress cannot be saved.':'Audio approval and pronunciation review are managed separately.'}</p><button id="parent-close">Close</button></section>`;$('#parent-close').onclick=()=>overlay.hidden=true;}
 async function begin(){prepareReview();try{await sound.init();}catch{overlay.hidden=false;overlay.innerHTML='<section class="parent"><p>Audio could not start. Tap Play to try again.</p><button id="retry-audio">Play</button></section>';$('#retry-audio').onclick=begin;return;}save.started=true;persist();overlay.hidden=true;if(save.completed){phase='ending';start=time;hud();return;}if(save.room===0&&!save.puzzle&&!save.solved){phase='opening';start=time;openingElapsed=0;hero=235;target=520;locked=true;hud();}else{phase='explore';hero=save.solved?1100:qaMode&&qaParams.has('room')?720:360;target=hero;hud();if(save.actionPending){if(save.room===0)hero=target=325;phase='action';actionStart=time;actionWord=word().id;locked=true;}else if(save.solved&&room().kind==='boss'){showMap('reward');}else if(save.puzzle){puzzle=save.puzzle;openPuzzle(true);}else if(room().kind==='boss')startBossIntro();}}

@@ -1,0 +1,18 @@
+{
+  "id": "./",
+  "name": "Word Builder",
+  "short_name": "Word Builder",
+  "description": "A phonics puzzle adventure. Build words and bring the park back!",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#263d37",
+  "theme_color": "#263d37",
+  "categories": ["games", "education"],
+  "icons": [
+    {"src":"./assets/art/app-icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"./assets/art/app-icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"./assets/art/app-icon-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  ]
+}
