@@ -50,3 +50,10 @@ html,body{overscroll-behavior:none}
 #puzzle[aria-busy="true"] .slot,#puzzle[aria-busy="true"] .letter{opacity:.8}
 
 .hint-head-spacer{width:48px;flex-shrink:0}
+
+/* Submit lives in its own header space, away from letter tiles. */
+.puzzle-head{height:76px}
+.puzzle-head .submit{position:static;display:flex;align-items:center;justify-content:center;gap:9px;flex-shrink:0;width:124px;height:72px;margin:0;border:2px solid #c8dfaf;border-radius:22px;background:linear-gradient(#80b291,#4e8c75);color:#fff;font-size:30px;font-weight:900;box-shadow:0 5px 0 #356957,0 8px 12px #42604b33}
+.submit svg{width:31px;height:31px;fill:none;stroke:currentColor;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.puzzle-head .submit:not(:disabled):active{transform:translateY(3px);box-shadow:0 2px 0 #356957}
+@media(max-width:850px),(max-height:560px){.puzzle-head{height:62px}.puzzle-head .submit{width:104px;height:58px;border-radius:18px;font-size:26px;gap:5px}.submit svg{width:26px;height:26px}}

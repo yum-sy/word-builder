@@ -1,4 +1,4 @@
-import {sourceToPhoneme} from './phonemes.js?v=6fe8765269f214f1';
+import {sourceToPhoneme} from './phonemes.js?v=acba48cf7b10aad4';
 // Explicit grapheme-to-phoneme correspondence. Silent-e groups are noncontiguous.
 const records = [
  ['run','r,u,n','r-rid,u-up,n-nap','run',0],

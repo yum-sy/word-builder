@@ -1,13 +1,13 @@
-import {protectGameInput} from './input-guard.js?v=6fe8765269f214f1';
-import {isInstalled,installApp} from './install.js?v=6fe8765269f214f1';
-import {collisionFrame,TUTORIAL_END} from './story.js?v=6fe8765269f214f1';
-import {bossIntro,bossReaction} from './boss.js?v=6fe8765269f214f1';
-import {actionFrame,encounterVariant,ACTION_DURATION} from './encounters.js?v=6fe8765269f214f1';
-import {settleAction,nextRoom,validSave,stageProgress} from './progress.js?v=6fe8765269f214f1';
-import {WORDS,ROOMS,ZONES,TUTORIAL,LETTER_SOUNDS} from './content.js?v=6fe8765269f214f1';
-import {emptyLearning,chooseReview,levelFor,recordResult,recordSupport,downgrade,candidates,sharedPool} from './learning.js?v=6fe8765269f214f1';
-import {Sound} from './audio.js?v=6fe8765269f214f1';
-import * as art from './art.js?v=6fe8765269f214f1';
+import {protectGameInput} from './input-guard.js?v=acba48cf7b10aad4';
+import {isInstalled,installApp} from './install.js?v=acba48cf7b10aad4';
+import {collisionFrame,TUTORIAL_END} from './story.js?v=acba48cf7b10aad4';
+import {bossIntro,bossReaction} from './boss.js?v=acba48cf7b10aad4';
+import {actionFrame,encounterVariant,ACTION_DURATION} from './encounters.js?v=acba48cf7b10aad4';
+import {settleAction,nextRoom,validSave,stageProgress} from './progress.js?v=acba48cf7b10aad4';
+import {WORDS,ROOMS,ZONES,TUTORIAL,LETTER_SOUNDS} from './content.js?v=acba48cf7b10aad4';
+import {emptyLearning,chooseReview,levelFor,recordResult,recordSupport,downgrade,candidates,sharedPool} from './learning.js?v=acba48cf7b10aad4';
+import {Sound} from './audio.js?v=acba48cf7b10aad4';
+import * as art from './art.js?v=acba48cf7b10aad4';
 const $=s=>document.querySelector(s), canvas=$('#world'),ctx=canvas.getContext('2d'),ui=$('#ui'),panel=$('#puzzle'),overlay=$('#overlay');
 const qaParams=new URLSearchParams(location.search),qaMode=['127.0.0.1','localhost'].includes(location.hostname)&&qaParams.get('qa')==='1';
 const SAVE=qaMode&&qaParams.has('room')?'word-builder-qa-v1':qaParams.get('audio')==='review'?'word-builder-audio-review-v1':qaMode?'word-builder-qa-v1':'word-builder-v1',sound=new Sound();
@@ -50,12 +50,12 @@ function drawTitle(){
 }
 window.addEventListener('app-install-state',()=>{if(phase==='title')drawTitle();});
 
-function parents(){overlay.hidden=false;overlay.innerHTML=`<section class="parent"><h2>For grown-ups</h2><p>Touch the path to walk. Use the thought bubble for a picture hint. Build a word, then tap ✓.</p><p>Progress stays in this browser. No timers, lives, or penalties.</p><p>Whole-word voices, when enabled, are AI-generated. Only reviewed audio is played. </p><p>${storageFailed?'Storage is unavailable. Progress cannot be saved.':'Audio approval and pronunciation review are managed separately.'}</p><button id="parent-close">Close</button></section>`;$('#parent-close').onclick=()=>overlay.hidden=true;}
+function parents(){overlay.hidden=false;overlay.innerHTML=`<section class="parent"><h2>For grown-ups</h2><p>Touch the path to walk. Use the thought bubble for a picture hint. Build a word, then tap Go!</p><p>Progress stays in this browser. No timers, lives, or penalties.</p><p>Whole-word voices, when enabled, are AI-generated. Only reviewed audio is played. </p><p>${storageFailed?'Storage is unavailable. Progress cannot be saved.':'Audio approval and pronunciation review are managed separately.'}</p><button id="parent-close">Close</button></section>`;$('#parent-close').onclick=()=>overlay.hidden=true;}
 async function begin(){prepareReview();try{await sound.init();}catch{overlay.hidden=false;overlay.innerHTML='<section class="parent"><p>Audio could not start. Tap Play to try again.</p><button id="retry-audio">Play</button></section>';$('#retry-audio').onclick=begin;return;}save.started=true;persist();overlay.hidden=true;if(save.completed){phase='ending';start=time;hud();return;}if(save.room===0&&!save.puzzle&&!save.solved){phase='opening';start=time;openingElapsed=0;hero=235;target=520;locked=true;hud();}else{phase='explore';hero=save.solved?1100:qaMode&&qaParams.has('room')?720:360;target=hero;hud();if(save.actionPending){if(save.room===0)hero=target=325;phase='action';actionStart=time;actionWord=word().id;locked=true;}else if(save.solved&&room().kind==='boss'){showMap('reward');}else if(save.puzzle){puzzle=save.puzzle;openPuzzle(true);}else if(room().kind==='boss')startBossIntro();}}
 function newPuzzle(){const w=word();return {word:w.id,letters:w.letters.map(()=>''),level:qaMode&&qaParams.has('level')?Math.max(1,Math.min(4,Number(qaParams.get('level'))||1)):levelFor(w,save.learning,room().kind==='boss'),errors:0,consecutive:0,hint:false,confusions:[],pool:shuffle(sharedPool(w)),options:w.letters.map(l=>shuffle(candidates(l,2)))};}
 async function hint(auto=false){if(locked)return;puzzle=puzzle||newPuzzle();recordSupport(save.learning,puzzle,'picture',{automatic:auto});save.puzzle=puzzle;persist();locked=true;if(phase==='puzzle'){panel.setAttribute('aria-busy','true');panel.querySelectorAll('button').forEach(b=>b.disabled=true);}hintStarted=time;hintUntil=Infinity;hud();await sound.play(word().wordAudio);await wait(600);await sound.play(word().wordAudio);await wait(1900);await wait(Math.max(0,(4.8-(time-hintStarted))*1000));hintUntil=0;locked=false;if(phase==='puzzle'){panel.removeAttribute('aria-busy');renderPuzzle();}if(auto)openPuzzle();else hud();}
 function openPuzzle(restore=false){if(locked)return;puzzle=restore?puzzle:(puzzle||newPuzzle());if(puzzle.word!==word().id)puzzle=newPuzzle();phase='puzzle';selected=Math.max(0,puzzle.letters.findIndex(l=>!l));panel.hidden=false;$('#game').classList.add('puzzle-open');hud();renderPuzzle();save.puzzle=puzzle;persist();}
-function renderPuzzle(bad=[]){const w=word(),level=puzzle.level;panel.classList.toggle('columns-mode',level<=2);panel.innerHTML=`<div class="puzzle-head">${button('Close puzzle','close','','close-puzzle')}<button id="picture-hint" class="picture-hint" aria-label="Play hint">☁ ▶ Hint</button><span class="hint-head-spacer" aria-hidden="true"></span></div><div class="slots">${w.letters.map((_,i)=>`<button class="slot ${i===selected?'active':''} ${bad.includes(i)?'bad':''}" data-slot="${i}" aria-label="Letter slot ${i+1}">${puzzle.letters[i]||''}</button>`).join('')}</div><div class="choices"></div>${button('Check word','check','submit','submit-word')}`;
+function renderPuzzle(bad=[]){const w=word(),level=puzzle.level;panel.classList.toggle('columns-mode',level<=2);panel.innerHTML=`<div class="puzzle-head">${button('Close puzzle','close','','close-puzzle')}<button id="picture-hint" class="picture-hint" aria-label="Play hint">☁ ▶ Hint</button><button id="submit-word" class="submit" aria-label="Go! Check word"><span>Go!</span><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 16h21M17 7l9 9-9 9"/></svg></button></div><div class="slots">${w.letters.map((_,i)=>`<button class="slot ${i===selected?'active':''} ${bad.includes(i)?'bad':''}" data-slot="${i}" aria-label="Letter slot ${i+1}">${puzzle.letters[i]||''}</button>`).join('')}</div><div class="choices"></div>`;
  $('#close-puzzle').onclick=()=>{if(locked)return;phase='explore';panel.hidden=true;$('#game').classList.remove('puzzle-open');hud();};
  $('#picture-hint').onclick=()=>hint();
 
