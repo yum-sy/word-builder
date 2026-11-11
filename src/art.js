@@ -1,7 +1,7 @@
-import {clearMatte,silhouetteRegions} from './sprite-matte.js?v=da860f5ec528b24c';
-import {PARK_PLOTS,PARK_SCALES,trainPoint} from './park.js?v=da860f5ec528b24c';
-import {actionFrame,ease,clamp} from './encounters.js?v=da860f5ec528b24c';
-import {SCENES} from './content.js?v=da860f5ec528b24c';
+import {clearMatte,silhouetteRegions} from './sprite-matte.js?v=3bd75bd146ccb453';
+import {PARK_PLOTS,PARK_SCALES,trainPoint} from './park.js?v=3bd75bd146ccb453';
+import {actionFrame,ease,clamp} from './encounters.js?v=3bd75bd146ccb453';
+import {SCENES} from './content.js?v=3bd75bd146ccb453';
 const paintings={},spriteLayers={};
 const actorFrames={};
 function prepareSprite(id,img){
